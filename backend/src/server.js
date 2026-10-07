@@ -71,8 +71,10 @@ app.use((err, _req, res, _next) => {
 
 app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));
 
-app.listen(PORT, () => {
-  console.log(`Blog API listening on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Blog API listening on port ${PORT}`);
+  });
+}
 
 module.exports = app;
