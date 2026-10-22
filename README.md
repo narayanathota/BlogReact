@@ -127,3 +127,5 @@ The UI ("Marginal") is a custom-built design system, not a component-library
 default: a paper-grain background, Fraunces/Inter/IBM Plex Mono type pairing,
 moss-and-rust accent ink, and a signature **reading-spine** scroll-progress
 ruler on article pages. All tokens live in `frontend/src/index.css`.
+
+<!-- CI trigger test -->
