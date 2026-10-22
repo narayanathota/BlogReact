@@ -1,0 +1,28 @@
+# Applied by an admin (not by Jenkins). A read-only role for the blogapp namespace:
+# a viewer can look at pods, logs, services and deployments, but cannot change anything or read Secrets.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: blogapp-viewer
+  namespace: blogapp
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "pods/log", "services", "events"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "replicasets"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: blogapp-viewer-binding
+  namespace: blogapp
+subjects:
+  - kind: User
+    name: blog-viewer
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: blogapp-viewer
+  apiGroup: rbac.authorization.k8s.io
