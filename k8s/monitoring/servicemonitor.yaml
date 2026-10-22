@@ -1,0 +1,44 @@
+# Applied by an admin (not by Jenkins): the Prometheus Operator custom resources need cluster-level rights.
+# Tells Prometheus to scrape the backend's /metrics every 30 seconds.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: backend
+  namespace: blogapp
+  labels:
+    release: kps
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  endpoints:
+    - port: http          # the named port on backend-service
+      path: /metrics
+      interval: 30s
+---
+# Alert rules shown in Prometheus and Alertmanager.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: blogapp-alerts
+  namespace: blogapp
+  labels:
+    release: kps
+spec:
+  groups:
+    - name: blogapp
+      rules:
+        - alert: BackendDown
+          expr: absent(up{job="backend-service", namespace="blogapp"} == 1)
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "No healthy backend is being scraped"
+        - alert: PodRestartingFrequently
+          expr: increase(kube_pod_container_status_restarts_total{namespace="blogapp"}[15m]) > 3
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "A blogapp container restarted more than 3 times in 15 minutes"
