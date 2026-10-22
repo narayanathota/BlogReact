@@ -1,0 +1,56 @@
+# Deny all inbound traffic in the namespace, then allow only the three required paths.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: blogapp
+spec:
+  podSelector: {}
+  policyTypes: ["Ingress"]
+---
+# the database accepts connections from the backend only
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-mysql-from-backend
+  namespace: blogapp
+spec:
+  podSelector:
+    matchLabels: { app: mysql }
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels: { app: backend }
+      ports:
+        - { protocol: TCP, port: 3306 }
+---
+# the backend accepts the frontend (nginx) and Prometheus (monitoring namespace)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backend-from-frontend-and-monitoring
+  namespace: blogapp
+spec:
+  podSelector:
+    matchLabels: { app: backend }
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels: { app: frontend }
+        - namespaceSelector:
+            matchLabels: { kubernetes.io/metadata.name: monitoring }
+      ports:
+        - { protocol: TCP, port: 5000 }
+---
+# the frontend accepts traffic from the load balancer
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-frontend-from-alb
+  namespace: blogapp
+spec:
+  podSelector:
+    matchLabels: { app: frontend }
+  ingress:
+    - ports:
+        - { protocol: TCP, port: 8080 }
